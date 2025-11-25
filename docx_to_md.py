@@ -4,33 +4,36 @@ from datetime import datetime
 import os
 import re
 
-# Path to your DOCX file
-docx_path = "example.docx"
+# Folder containing DOCX files
+docx_folder = "."
+output_folder = "_posts"
 
-# Read the DOCX
-doc = Document(docx_path)
+for file in os.listdir(docx_folder):
+    if file.endswith(".docx") and not file.startswith("~$"):
+        docx_path = os.path.join(docx_folder, file)
 
-# Extract text
-full_text = ""
-for para in doc.paragraphs:
-    full_text += para.text + "\n\n"
+        # Read the DOCX
+        doc = Document(docx_path)
 
-# Convert to Markdown
-markdown_text = md(full_text)
+        # Extract text
+        full_text = ""
+        for para in doc.paragraphs:
+            full_text += para.text + "\n\n"
 
-# Generate a clean title from the filename
-title = os.path.splitext(os.path.basename(docx_path))[0]
-slug = re.sub(r'\s+', '-', title.lower())  # spaces → dashes
+        # Convert to Markdown
+        markdown_text = md(full_text)
 
-# Get today’s date for the post filename
-date_str = datetime.today().strftime('%Y-%m-%d')
-filename = f"{date_str}-{slug}.md"
+        # Generate a clean title from the filename
+        title = os.path.splitext(file)[0]
+        slug = re.sub(r'\s+', '-', title.lower())
 
-# Path to _posts folder
-output_path = os.path.join("_posts", filename)
+        # Get today’s date
+        date_str = datetime.today().strftime('%Y-%m-%d')
+        filename = f"{date_str}-{slug}.md"
+        output_path = os.path.join(output_folder, filename)
 
-# YAML front matter for Jekyll
-front_matter = f"""---
+        # YAML front matter
+        front_matter = f"""---
 layout: post
 title: "{title}"
 date: {date_str}
@@ -40,11 +43,11 @@ tags: []
 
 """
 
-# Combine front matter + markdown
-full_md = front_matter + markdown_text
+        # Combine front matter + markdown
+        full_md = front_matter + markdown_text
 
-# Save the Markdown file
-with open(output_path, "w", encoding="utf-8") as f:
-    f.write(full_md)
+        # Save Markdown
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(full_md)
 
-print("✅ Conversion complete! Markdown saved to", output_path)
+        print(f"✅ Converted {file} → {output_path}")
